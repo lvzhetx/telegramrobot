@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from telegram.ext import Updater, CommandHandler
+import datetime
+
+class QiuDogBot(object):
+    def __init__(self, token):
+        self.updater = Updater(token)
+        self._addHandler(CommandHandler('start', self._start,
+                                        pass_job_queue=True,
+                                        pass_chat_data=True))
+        self._addHandler(CommandHandler('hello', self._hello))
+
+    def _addHandler(self, handler):
+        self.updater.dispatcher.add_handler(handler)
+
+    def _start(self, bot, update, job_queue, chat_data):
+        chat_id = update.message.chat_id
+        job = job_queue.run_repeating(self._sendDate, 60, context=chat_id)
+        update.message.reply_text('Hello World!')
+
+    def _hello(self, bot, update):
+        update.message.reply_text(
+            'Hello {}'.format(update.message.from_user.first_name))
+
+    def _sendDate(self, bot, job):
+        bot.send_message(job.context, text='出来玩。')
+
+    def run(self):
+        self.updater.start_polling()
+        self.updater.idle()
+
+if __name__ == '__main__':
+    import os
+    bot = QiuDogBot(os.environ['telebotToken'])
+    bot.run()
